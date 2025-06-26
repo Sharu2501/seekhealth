@@ -1,14 +1,20 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { ref } from 'vue'
+import { RouterView } from 'vue-router'
 import Header from './components/Header.vue'
+
+const user = ref(null)
+
+function handleLoginSuccess(loggedInUser) {
+  user.value = loggedInUser
+}
 </script>
 
 <template>
-  <Header></Header>
+  <Header @login-success="handleLoginSuccess" />
 
- <main class="main-content">
-    <RouterView />
+  <main class="main-content">
+    <RouterView :user="user" />
   </main>
 </template>
 

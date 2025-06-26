@@ -1,56 +1,77 @@
-
 <template>
   <header class="header-container">
-    <nav 
-      class="navbar" 
+    <nav
+      class="navbar"
       :class="{ 'expanded': isExpanded, 'dark-mode': isDarkMode }"
     >
       <!-- Logo -->
       <div class="logo-container">
-        <img 
-          src="./img/SeekHealthlogo.png" 
-          alt="Logo" 
+        <img
+          src="./img/SeekHealthlogo.png"
+          alt="Logo"
           class="logo"
         />
       </div>
-      
+
       <div class="menu-items" v-show="isExpanded">
         <RouterLink to="/" class="menu-item" exact-active-class="active">Accueil</RouterLink>
         <RouterLink to="/journal" class="menu-item" active-class="active">Journal</RouterLink>
         <RouterLink to="/statistiques" class="menu-item" active-class="active">Statistiques</RouterLink>
         <RouterLink to="/parametres" class="menu-item" active-class="active">Paramètres</RouterLink>
-        
-        <!-- Séparateur visuel -->
+
         <div class="separator"></div>
-        
-        <!-- Bouton de toggle mode jour/nuit -->
-        <button 
-          @click="toggleTheme" 
+
+        <!-- Bouton de connexion Microsoft -->
+        <!-- Si connecté : affiche les initiales -->
+        <div v-if="userFirstName" class="user-name-display">
+          {{ userInitials }}
+        </div>
+
+        <!-- Sinon : affiche bouton Microsoft -->
+        <button
+          v-else
+          @click="loginWithMicrosoft"
+          class="microsoft-btn"
+          title="Connexion Microsoft"
+          aria-label="Connexion Microsoft"
+        >
+          <svg class="microsoft-icon" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.5 11.5H1V1h10.5v10.5z" fill="#F25022"/>
+            <path d="M22 11.5H11.5V1H22v10.5z" fill="#7FBA00"/>
+            <path d="M11.5 22H1V11.5h10.5V22z" fill="#00A4EF"/>
+            <path d="M22 22H11.5V11.5H22V22z" fill="#FFB900"/>
+          </svg>
+        </button>
+
+
+        <!-- Bouton pour le mode jour ou nuit -->
+        <button
+          @click="toggleTheme"
           class="theme-toggle"
           :title="themeLabel"
           :aria-label="themeLabel"
         >
-          <!-- Icône soleil (mode jour) -->
-          <svg 
-            v-if="themeIcon === 'sun'" 
-            class="theme-icon sun-icon" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+          <!-- Icône du soleil -->
+          <svg
+            v-if="themeIcon === 'sun'"
+            class="theme-icon sun-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             stroke-width="2"
             aria-hidden="true"
           >
             <circle cx="12" cy="12" r="5"/>
             <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
           </svg>
-          
-          <!-- Icône lune (mode nuit) -->
-          <svg 
-            v-else 
-            class="theme-icon moon-icon" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+
+          <!-- Icône de la lune -->
+          <svg
+            v-else
+            class="theme-icon moon-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             stroke-width="2"
             aria-hidden="true"
           >
@@ -64,13 +85,13 @@
 
 <script>
 import { useTheme } from '@/composables/useTheme'
+import { signInAndGetUser } from '../lib/microsoftGraph'
 
 export default {
   name: 'AnimatedHeader',
   setup() {
-    // Utiliser le composable de thème
     const { isDarkMode, themeIcon, themeLabel, toggleTheme } = useTheme()
-    
+
     return {
       isDarkMode,
       themeIcon,
@@ -80,11 +101,13 @@ export default {
   },
   data() {
     return {
-      isExpanded: false
+      isExpanded: false,
+      userFirstName: null,
+      userLastName: null,
+      userInitials: null
     }
   },
   mounted() {
-    // Animation automatique après 1 seconde
     setTimeout(() => {
       this.expandNavbar()
     }, 1000)
@@ -95,13 +118,31 @@ export default {
     },
     collapseNavbar() {
       this.isExpanded = false
+    },
+    async loginWithMicrosoft() {
+      console.log("Connexion avec Microsoft");
+      try {
+        const user = await signInAndGetUser()
+        console.log('Utilisateur Microsoft :', user)
+        this.userFirstName = user.name
+        this.userLastName = user.username
+
+        const first = user.name || '';
+        const last = user.username || '';
+        this.userFirstName = first;
+
+        this.userInitials = (first[0] || '') + (last[0] || '');
+
+        this.$emit('login-success', user)
+      } catch (error) {
+        console.error('Login failed:', error)
+      }
     }
   }
 }
 </script>
 
 <style scoped>
-/* Tous vos styles CSS restent identiques */
 .header-container {
   position: fixed;
   top: 20px;
@@ -121,37 +162,37 @@ export default {
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  
+
   width: 35px;
   height: 35px;
-  
-  box-shadow: 
+
+  box-shadow:
     0 4px 20px rgba(138, 43, 226, 0.3),
     0 8px 40px rgba(138, 43, 226, 0.2);
-  
+
   animation: shadowPulse 3s ease-in-out infinite;
 }
 
 .navbar.dark-mode {
   background: rgba(30, 30, 30, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
+  box-shadow:
     0 4px 20px rgba(138, 43, 226, 0.4),
     0 8px 40px rgba(138, 43, 226, 0.3);
 }
 
 .navbar.expanded {
-  width: 600px;
+  width: 800px;
   height: 35px;
   padding: 12px 24px;
-  
-  box-shadow: 
+
+  box-shadow:
     0 6px 30px rgba(138, 43, 226, 0.4),
     0 12px 60px rgba(138, 43, 226, 0.3);
 }
 
 .navbar.expanded.dark-mode {
-  box-shadow: 
+  box-shadow:
     0 6px 30px rgba(138, 43, 226, 0.5),
     0 12px 60px rgba(138, 43, 226, 0.4);
 }
@@ -182,11 +223,12 @@ export default {
 .menu-items {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 30px;
   margin-left: auto;
   opacity: 0;
   transform: translateX(20px);
   transition: all 0.6s ease 0.3s;
+  height: 100%;
 }
 
 .navbar.expanded .menu-items {
@@ -238,6 +280,63 @@ export default {
   background: linear-gradient(to bottom, transparent, rgba(157, 78, 221, 0.4), transparent);
 }
 
+.microsoft-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.microsoft-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.dark-mode .microsoft-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.microsoft-icon {
+  width: 22px;
+  height: 22px;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.dark-mode .microsoft-icon {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.microsoft-btn:hover .microsoft-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+}
+
+.dark-mode .microsoft-btn:hover .microsoft-icon {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+.user-name-display {
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background-color: rgba(138, 43, 226, 0.1);
+  color: #8a2be2;
+  transition: all 0.3s ease;
+}
+
+.dark-mode .user-name-display {
+  color: #e0e0e0;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .theme-toggle {
   background: none;
   border: none;
@@ -278,12 +377,12 @@ export default {
 
 @keyframes shadowPulse {
   0%, 100% {
-    box-shadow: 
+    box-shadow:
       0 4px 20px rgba(138, 43, 226, 0.3),
       0 8px 40px rgba(138, 43, 226, 0.2);
   }
   50% {
-    box-shadow: 
+    box-shadow:
       0 6px 30px rgba(138, 43, 226, 0.5),
       0 12px 60px rgba(138, 43, 226, 0.4);
   }
@@ -304,7 +403,7 @@ export default {
     width: 90vw;
     max-width: 450px;
   }
-  
+
   .menu-items { gap: 12px; }
   .menu-item { font-size: 13px; padding: 6px 12px; }
   .separator { display: none; }
