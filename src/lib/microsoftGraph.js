@@ -4,7 +4,7 @@ const requestedScopes = {
     scopes: ['User.Read', 'Mail.Read']
 }
 
-const msalInstance = new msal.PublicClientApplication({
+export const msalInstance = new msal.PublicClientApplication({
     auth: {
         clientId: import.meta.env.VITE_OAUTH_CLIENT_ID,
         authority: 'https://login.microsoftonline.com/common',
@@ -53,4 +53,14 @@ export async function getUserMails() {
 
     const data = await res.json()
     return data.value
+}
+
+export function getActiveUser() {
+    const account = msalInstance.getActiveAccount()
+    if (!account) return null
+    return {
+        name: account.name,
+        email: account.username,
+        ...account
+    }
 }

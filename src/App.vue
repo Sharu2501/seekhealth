@@ -8,13 +8,23 @@ const user = ref(null)
 function handleLoginSuccess(loggedInUser) {
   user.value = loggedInUser
 }
+
+function handleLogout() {
+  user.value = null
+}
 </script>
 
 <template>
-  <Header @login-success="handleLoginSuccess" />
+  <Header
+    @login-success="handleLoginSuccess"
+    @logout="handleLogout"
+    :user="user"
+  />
 
   <main class="main-content">
-    <RouterView :user="user" />
+    <RouterView v-slot="{ Component }">
+      <component :is="Component" :user="user" />
+    </RouterView>
   </main>
 </template>
 

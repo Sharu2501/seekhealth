@@ -23,18 +23,19 @@
 
         <!-- Bouton de connexion Microsoft -->
         <!-- Si connecté : affiche les initiales -->
-        <div v-if="userFirstName" class="user-name-display">
-          {{ userInitials }}
+        <div v-if="user" class="user-info-container">
+          <div class="user-name-display">{{ userInitials }}</div>
+          <button class="logout-btn" @click="logout" title="Se déconnecter" aria-label="Se déconnecter">
+            <svg class="logout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
 
         <!-- Sinon : affiche bouton Microsoft -->
-        <button
-          v-else
-          @click="loginWithMicrosoft"
-          class="microsoft-btn"
-          title="Connexion Microsoft"
-          aria-label="Connexion Microsoft"
-        >
+        <button v-else @click="loginWithMicrosoft" class="microsoft-btn" title="Connexion Microsoft" aria-label="Connexion Microsoft">
           <svg class="microsoft-icon" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M11.5 11.5H1V1h10.5v10.5z" fill="#F25022"/>
             <path d="M22 11.5H11.5V1H22v10.5z" fill="#7FBA00"/>
@@ -86,9 +87,13 @@
 <script>
 import { useTheme } from '@/composables/useTheme'
 import { signInAndGetUser } from '../lib/microsoftGraph'
+import { msalInstance } from '../lib/microsoftGraph'
 
 export default {
   name: 'AnimatedHeader',
+  props: {
+    user: Object
+  },
   setup() {
     const { isDarkMode, themeIcon, themeLabel, toggleTheme } = useTheme()
 
@@ -101,10 +106,15 @@ export default {
   },
   data() {
     return {
-      isExpanded: false,
-      userFirstName: null,
-      userLastName: null,
-      userInitials: null
+      isExpanded: false
+    }
+  },
+  computed: {
+    userInitials() {
+      if (!this.user) return ''
+      const first = this.user.name || ''
+      const last = this.user.username || ''
+      return (first[0] || '') + (last[0] || '')
     }
   },
   mounted() {
@@ -120,22 +130,19 @@ export default {
       this.isExpanded = false
     },
     async loginWithMicrosoft() {
-      console.log("Connexion avec Microsoft");
       try {
         const user = await signInAndGetUser()
-        console.log('Utilisateur Microsoft :', user)
-        this.userFirstName = user.name
-        this.userLastName = user.username
-
-        const first = user.name || '';
-        const last = user.username || '';
-        this.userFirstName = first;
-
-        this.userInitials = (first[0] || '') + (last[0] || '');
-
         this.$emit('login-success', user)
       } catch (error) {
         console.error('Login failed:', error)
+      }
+    },
+    async logout() {
+      try {
+        await msalInstance.logoutPopup()
+        this.$emit('logout')
+      } catch (e) {
+        console.error('Logout failed:', e)
       }
     }
   }
@@ -335,6 +342,40 @@ export default {
 .dark-mode .user-name-display {
   color: #e0e0e0;
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-info-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.logout-icon {
+  width: 18px;
+  height: 18px;
+  color: #8a2be2;
+  stroke-width: 2;
+}
+
+.dark-mode .logout-icon {
+  color: #e0e0e0;
 }
 
 .theme-toggle {
