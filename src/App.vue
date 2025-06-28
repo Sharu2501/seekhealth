@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import Header from './components/Header.vue'
 
@@ -7,11 +7,24 @@ const user = ref(null)
 
 function handleLoginSuccess(loggedInUser) {
   user.value = loggedInUser
+  localStorage.setItem('user', JSON.stringify(loggedInUser))
 }
 
 function handleLogout() {
   user.value = null
+  localStorage.removeItem('user')
 }
+
+onMounted(() => {
+  const savedUser = localStorage.getItem('user')
+  if (savedUser) {
+    try {
+      user.value = JSON.parse(savedUser)
+    } catch (e) {
+      console.warn('Données utilisateur invalides :', e)
+    }
+  }
+})
 </script>
 
 <template>

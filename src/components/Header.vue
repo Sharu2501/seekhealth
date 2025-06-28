@@ -88,6 +88,7 @@
 import { useTheme } from '@/composables/useTheme'
 import { signInAndGetUser } from '../lib/microsoftGraph'
 import { msalInstance } from '../lib/microsoftGraph'
+import { ensureInitialized } from '../lib/microsoftGraph'
 
 export default {
   name: 'AnimatedHeader',
@@ -139,6 +140,7 @@ export default {
     },
     async logout() {
       try {
+        await ensureInitialized()
         await msalInstance.logoutPopup()
         this.$emit('logout')
       } catch (e) {

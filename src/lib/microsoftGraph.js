@@ -64,3 +64,7 @@ export function getActiveUser() {
         ...account
     }
 }
+
+export {
+    ensureInitialized
+}
