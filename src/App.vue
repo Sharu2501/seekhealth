@@ -2,6 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, RouterView } from 'vue-router'
 import Header from './components/Header.vue'
+import { useTheme } from './composables/useTheme'
+
+const { themeClass } = useTheme()
 
 const user = ref(null)
 const router = useRouter()
