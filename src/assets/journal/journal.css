@@ -157,7 +157,7 @@
     border: none;
     background: transparent;
     color: var(--text-primary);
-    font-family: var(--font-family);
+    font-family: var(--font-family), serif;
     font-weight: var(--font-weight-medium);
     font-size: 0.875rem;
     outline: none;

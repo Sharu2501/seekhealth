@@ -80,7 +80,7 @@
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-family);
+  font-family: var(--font-family), serif;
   font-weight: var(--font-weight-normal);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -90,7 +90,7 @@ body {
 
 /* Typographie globale */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-family);
+  font-family: var(--font-family), serif;
   font-weight: var(--font-weight-semibold);
   line-height: 1.3;
   margin: 0;
@@ -105,7 +105,7 @@ h5 { font-size: 1.125rem; font-weight: var(--font-weight-medium); }
 h6 { font-size: 1rem; font-weight: var(--font-weight-medium); }
 
 p {
-  font-family: var(--font-family);
+  font-family: var(--font-family), serif;
   font-weight: var(--font-weight-normal);
   line-height: 1.6;
   margin: 0;
@@ -114,7 +114,7 @@ p {
 
 /* Éléments de formulaire */
 input, textarea, select, button {
-  font-family: var(--font-family);
+  font-family: var(--font-family), serif;
 }
 
 button {
@@ -123,7 +123,7 @@ button {
 
 /* Links */
 a {
-  font-family: var(--font-family);
+  font-family: var(--font-family), serif;
   color: var(--accent-primary);
   text-decoration: none;
   font-weight: var(--font-weight-medium);
@@ -141,7 +141,7 @@ a:hover {
   border-radius: var(--radius-md);
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
-  font-family: var(--font-family);
+  font-family: var(--font-family), serif;
   transition: all var(--transition-normal);
 }
 
@@ -156,7 +156,7 @@ a:hover {
   border: none;
   border-radius: var(--radius-sm);
   padding: 0.75rem 1.5rem;
-  font-family: var(--font-family);
+  font-family: var(--font-family), serif;
   font-weight: var(--font-weight-medium);
   font-size: 0.9rem;
   cursor: pointer;
@@ -188,7 +188,7 @@ a:hover {
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
   padding: 0.75rem;
-  font-family: var(--font-family);
+  font-family: var(--font-family), serif;
   font-weight: var(--font-weight-normal);
   font-size: 0.9rem;
   transition: all var(--transition-fast);
