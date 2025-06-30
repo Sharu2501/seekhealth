@@ -153,6 +153,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import '../assets/journal/mood.css'
 
 const props = defineProps({
   date: { type: String, required: true }
@@ -181,7 +182,6 @@ const secondaryEmotions = [
   { id: 'gratitude', name: 'Gratitude', emoji: '🙏' },
   { id: 'stress', name: 'Stress', emoji: '😰' },
   { id: 'calme', name: 'Calme', emoji: '😌' }
-  // ... autres émotions
 ]
 
 const influenceFactors = [
@@ -189,14 +189,11 @@ const influenceFactors = [
   { id: 'travail', label: 'Travail', icon: '💼', type: 'neutral' },
   { id: 'sport', label: 'Sport', icon: '🏃‍♂️', type: 'positive' },
   { id: 'echecs', label: 'Échecs', icon: '❌', type: 'negative' }
-  // ... autres facteurs
 ]
 
-// Computed
 const hasValidData = computed(() => humeurData.value.mainMood !== null)
 const isDataComplete = computed(() => humeurData.value.mainMood !== null && humeurData.value.intensity)
 
-// Methods
 const selectMainMood = (mood) => {
   humeurData.value.mainMood = mood
   updateData()
@@ -259,186 +256,3 @@ const loadData = () => {
 watch(() => props.date, loadData)
 onMounted(loadData)
 </script>
-
-<style scoped>
-.mood-title {
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-}
-
-.mood-description {
-  font-size: 0.875rem;
-  opacity: 0.8;
-  font-weight: var(--font-weight-normal);
-}
-
-.intensity-container {
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-}
-
-.intensity-slider-container {
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.intensity-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  font-weight: var(--font-weight-medium);
-}
-
-.slider-wrapper {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.intensity-slider {
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  background: rgba(138, 43, 226, 0.2);
-  outline: none;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.intensity-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(138, 43, 226, 0.3);
-}
-
-.slider-value {
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--accent-primary);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: var(--font-weight-bold);
-  font-size: 0.875rem;
-}
-
-.emotions-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.emotion-tag {
-  background: var(--bg-primary);
-  border: 2px solid rgba(138, 43, 226, 0.2);
-  border-radius: 25px;
-  padding: 0.75rem 1.25rem;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-medium);
-}
-
-.emotion-tag:hover {
-  border-color: var(--accent-primary);
-  transform: translateY(-2px);
-}
-
-.emotion-tag.active {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  border-color: var(--accent-primary);
-  color: white;
-}
-
-.factor-btn.active.positive {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-}
-
-.factor-btn.active.negative {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-}
-
-.summary-main {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(138, 43, 226, 0.1);
-}
-
-.summary-emoji {
-  font-size: 4rem;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.summary-mood {
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.summary-intensity {
-  color: var(--text-secondary);
-  font-weight: var(--font-weight-medium);
-}
-
-.summary-label {
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
-  display: block;
-}
-
-.summary-emotions, .summary-factors {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.summary-tag {
-  background: rgba(138, 43, 226, 0.1);
-  color: var(--text-primary);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-medium);
-}
-
-.summary-tag.positive {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-}
-
-.summary-tag.negative {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-}
-
-@media (max-width: 768px) {
-  .summary-main {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-</style>

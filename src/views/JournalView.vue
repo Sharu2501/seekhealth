@@ -118,25 +118,25 @@
 
       <div class="content-body">
         <transition name="fade" mode="out-in">
-          <SommeilSection 
+          <SleepSection
             v-if="activeSection === 'sommeil'"
             :key="'sommeil-' + selectedDate"
             :date="selectedDate"
             @update="updateSectionCompletion"
           />
-          <HumeurSection 
+          <MoodSection
             v-else-if="activeSection === 'humeur'"
             :key="'humeur-' + selectedDate"
             :date="selectedDate"
             @update="updateSectionCompletion"
           />
-          <ActiviteSection 
+          <ActivitySection
             v-else-if="activeSection === 'activite'"
             :key="'activite-' + selectedDate"
             :date="selectedDate"
             @update="updateSectionCompletion"
           />
-          <AlimentationSection 
+          <FoodSection
             v-else-if="activeSection === 'alimentation'"
             :key="'alimentation-' + selectedDate"
             :date="selectedDate"
@@ -150,11 +150,11 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import SommeilSection from '@/components/SommeilSection.vue'
-import HumeurSection from '@/components/HumeurSection.vue'
-import ActiviteSection from '@/components/ActiviteSection.vue'
-import AlimentationSection from '@/components/AlimentationSection.vue'
-
+import SleepSection from '@/components/SleepSection.vue'
+import MoodSection from '@/components/MoodSection.vue'
+import ActivitySection from '@/components/ActivitySection.vue'
+import FoodSection from '@/components/FoodSection.vue'
+import '../assets/journal/journal.css'
 const isDarkMode = ref(false)
 
 const MoonIcon = {
@@ -268,7 +268,6 @@ const saveCompletionStatus = () => {
   localStorage.setItem(`journal-${selectedDate.value}`, JSON.stringify(data))
 }
 
-// Watch for date picker focus
 watch(showDatePicker, async (newValue) => {
   if (newValue) {
     await nextTick()
@@ -286,330 +285,3 @@ onMounted(() => {
   loadDataForDate(selectedDate.value)
 })
 </script>
-
-<style scoped>
-.journal-container {
-  display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-  padding-top: 100px;
-  padding-left: 20px;
-}
-
-.journal-sidebar {
-  position: fixed;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1000;
-  
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 25px;
-  padding: 16px 12px;
-  border: 1px solid rgba(138, 43, 226, 0.2);
-  
-  box-shadow:
-    0 8px 32px rgba(138, 43, 226, 0.3),
-    0 4px 16px rgba(138, 43, 226, 0.2);
-  
-  animation: sidebarPulse 3s ease-in-out infinite;
-}
-
-.journal-sidebar.dark-mode {
-  background: rgba(30, 30, 30, 0.95);
-  border: 1px solid rgba(157, 78, 221, 0.2);
-  box-shadow:
-    0 8px 32px rgba(138, 43, 226, 0.4),
-    0 4px 16px rgba(138, 43, 226, 0.3);
-}
-
-.sidebar-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar-btn {
-  width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.sidebar-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: linear-gradient(45deg, transparent, rgba(138, 43, 226, 0.1), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.sidebar-btn:hover::before {
-  opacity: 1;
-}
-
-.sidebar-btn:hover {
-  background: rgba(138, 43, 226, 0.1);
-  transform: scale(1.1);
-}
-
-.sidebar-btn.active {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  color: white;
-  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4);
-  transform: scale(1.1);
-}
-
-.sidebar-btn.completed:not(.active) {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-}
-
-.sidebar-icon {
-  width: 24px;
-  height: 24px;
-  color: var(--accent-primary);
-  transition: color 0.3s ease;
-}
-
-.sidebar-btn.active .sidebar-icon,
-.sidebar-btn.completed .sidebar-icon {
-  color: white;
-}
-
-.completion-dot {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 12px;
-  height: 12px;
-  background: #10b981;
-  border: 2px solid white;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.sidebar-separator {
-  width: 2px;
-  height: 20px;
-  background: linear-gradient(to bottom, transparent, rgba(138, 43, 226, 0.3), transparent);
-  border-radius: 1px;
-  margin: 4px 0;
-}
-
-.dark-mode .sidebar-separator {
-  background: linear-gradient(to bottom, transparent, rgba(157, 78, 221, 0.4), transparent);
-}
-
-/* NAVIGATION */
-.sidebar-navigation {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* DATE PICKER */
-.date-selector {
-  position: relative;
-}
-
-.date-popup {
-  position: absolute;
-  top: 0;
-  left: 60px;
-  background: var(--bg-primary);
-  border: 2px solid rgba(138, 43, 226, 0.2);
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 8px 24px rgba(138, 43, 226, 0.2);
-  z-index: 1001;
-}
-
-.date-input {
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-medium);
-  font-size: 0.875rem;
-  outline: none;
-  width: 140px;
-}
-
-/* PROGRESS MINI */
-.progress-item {
-  margin-top: 8px;
-}
-
-.progress-circle-mini {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-}
-
-.progress-ring-mini {
-  transform: rotate(-90deg);
-}
-
-.progress-ring-progress {
-  transition: stroke-dashoffset 0.8s ease;
-  stroke-linecap: round;
-}
-
-.progress-text-mini {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.progress-percentage-mini {
-  font-size: 0.75rem;
-  font-weight: var(--font-weight-bold);
-  color: var(--accent-primary);
-  line-height: 1;
-}
-
-.journal-content {
-  flex: 1;
-  margin-left: 100px;
-  padding: 20px;
-  transition: all 0.3s ease;
-}
-
-.content-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.title-section {
-  flex: 1;
-}
-
-.content-title {
-  font-size: 2.5rem;
-  font-weight: var(--font-weight-bold);
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.content-subtitle {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  font-weight: var(--font-weight-medium);
-  margin: 8px 0 0 0;
-  text-transform: capitalize;
-}
-
-.content-body {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 8px 32px rgba(138, 43, 226, 0.1);
-  border: 1px solid rgba(138, 43, 226, 0.1);
-  min-height: 500px;
-}
-
-.dark-theme .content-body {
-  background: rgba(30, 30, 30, 0.8);
-  border: 1px solid rgba(157, 78, 221, 0.2);
-}
-
-/* ANIMATIONS */
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-@keyframes sidebarPulse {
-  0%, 100% {
-    box-shadow:
-      0 8px 32px rgba(138, 43, 226, 0.3),
-      0 4px 16px rgba(138, 43, 226, 0.2);
-  }
-  50% {
-    box-shadow:
-      0 12px 48px rgba(138, 43, 226, 0.5),
-      0 6px 24px rgba(138, 43, 226, 0.4);
-  }
-}
-
-/* RESPONSIVE */
-@media (max-width: 1024px) {
-  .journal-content {
-    margin-left: 90px;
-  }
-}
-
-@media (max-width: 768px) {
-  .journal-container {
-    padding-left: 10px;
-    padding-top: 120px;
-  }
-  
-  .journal-sidebar {
-    left: 10px;
-    position: relative;
-    top: auto;
-    transform: none;
-    margin-bottom: 20px;
-    flex-direction: row;
-    width: calc(100% - 20px);
-    height: auto;
-    padding: 12px 16px;
-  }
-  
-  .sidebar-navigation {
-    flex-direction: row;
-  }
-  
-  .sidebar-separator {
-    width: 20px;
-    height: 2px;
-    background: linear-gradient(to right, transparent, rgba(138, 43, 226, 0.3), transparent);
-  }
-  
-  .journal-content {
-    margin-left: 0;
-  }
-  
-  .content-title {
-    font-size: 2rem;
-  }
-}
-</style>

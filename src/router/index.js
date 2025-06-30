@@ -14,11 +14,11 @@ const router = createRouter({
       name: 'journal',
       component: () => import('../views/JournalView.vue'),
     },
-    {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
-    },
+    // {
+    //   path: '/about',
+    //   name: 'about',
+    //   component: () => import('../views/AboutView.vue'),
+    // },
   ],
 })
 
