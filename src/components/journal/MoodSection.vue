@@ -153,10 +153,11 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import '../assets/journal/mood.css'
+import '../../assets/journal/mood.css'
 
 const props = defineProps({
-  date: { type: String, required: true }
+  date: { type: String, required: true },
+  user: { type: Object, required: false }
 })
 
 const emit = defineEmits(['update'])
@@ -234,23 +235,60 @@ const getFactorById = (id) => influenceFactors.find(f => f.id === id)
 
 const updateData = () => {
   saveData()
-  emit('update', 'humeur', isDataComplete.value)
+
+  emit('update', 'humeur', isDataComplete.value, {
+    mainMood: humeurData.value.mainMood,
+    intensity: humeurData.value.intensity,
+    secondaryEmotions: [...humeurData.value.secondaryEmotions],
+    factors: [...humeurData.value.factors],
+    notes: humeurData.value.notes
+  })
+}
+
+function userEmailOrGuest() {
+  const user = JSON.parse(localStorage.getItem('user')) || null
+  return user?.email || 'guest'
 }
 
 const saveData = () => {
-  const key = `humeur-${props.date}`
-  localStorage.setItem(key, JSON.stringify(humeurData.value))
+  const key = `journal-${userEmailOrGuest()}-${props.date}`
+  const existingEntry = JSON.parse(localStorage.getItem(key)) || {}
+
+  existingEntry.humeur = humeurData.value
+
+  existingEntry.completions = existingEntry.completions || {}
+  existingEntry.completions.humeur = {
+    mainMood: humeurData.value.mainMood,
+    intensity: humeurData.value.intensity,
+    secondaryEmotions: [...humeurData.value.secondaryEmotions],
+    factors: [...humeurData.value.factors],
+    notes: humeurData.value.notes,
+    isComplete: isDataComplete.value
+  }
+
+  existingEntry.lastUpdated = new Date().toISOString()
+
+  localStorage.setItem(key, JSON.stringify(existingEntry))
 }
 
 const loadData = () => {
-  const key = `humeur-${props.date}`
+  const key = `journal-${userEmailOrGuest()}-${props.date}`
   const savedData = localStorage.getItem(key)
+
   if (savedData) {
-    humeurData.value = JSON.parse(savedData)
-  } else {
-    humeurData.value = { mainMood: null, intensity: 5, secondaryEmotions: [], factors: [], notes: '' }
+    const parsed = JSON.parse(savedData)
+    if (parsed.humeur) {
+      humeurData.value = parsed.humeur
+    }
   }
-  emit('update', 'humeur', isDataComplete.value)
+
+  emit('update', 'humeur', isDataComplete.value, {
+    mainMood: humeurData.value.mainMood,
+    intensity: humeurData.value.intensity,
+    secondaryEmotions: [...humeurData.value.secondaryEmotions],
+    factors: [...humeurData.value.factors],
+    notes: humeurData.value.notes
+  })
 }
 
 watch(() => props.date, loadData)

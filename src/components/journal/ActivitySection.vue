@@ -107,11 +107,11 @@
     </div>
 
     <!-- Liste des activités -->
-    <div class="mb-5" v-if="activiteData.activities.length > 0">
+    <div class="mb-5" v-if="activiteData.activite.length > 0">
       <h3 class="text-center mb-4">Activités d'aujourd'hui</h3>
       <div class="grid grid-lg">
         <div
-          v-for="(activity, index) in activiteData.activities"
+          v-for="(activity, index) in activiteData.activite"
           :key="index"
           class="card activity-card"
         >
@@ -155,7 +155,7 @@
     </div>
 
     <!-- Statistiques -->
-    <div class="card-gradient" v-if="activiteData.activities.length > 0">
+    <div class="card-gradient" v-if="activiteData.activite.length > 0">
       <h3 class="text-center mb-4">Résumé de la journée</h3>
       <div class="stats-grid">
         <div class="stat-card">
@@ -177,7 +177,7 @@
         <div class="stat-card">
           <div class="stat-icon">📊</div>
           <div class="stat-content">
-            <div class="stat-value">{{ activiteData.activities.length }}</div>
+            <div class="stat-value">{{ activiteData.activite.length }}</div>
             <div class="stat-label">Activités</div>
           </div>
         </div>
@@ -192,7 +192,7 @@
       </div>
     </div>
 
-    <div class="encouragement" v-if="activiteData.activities.length === 0 && !hasNoActivity">
+    <div class="encouragement" v-if="activiteData.activite.length === 0 && !hasNoActivity">
       <div class="encouragement-icon">💪</div>
       <h3 class="encouragement-title">Prêt à bouger ?</h3>
       <p class="encouragement-text">
@@ -217,16 +217,16 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import '../assets/journal/activity.css'
+import '../../assets/journal/activity.css'
 
 const props = defineProps({
   date: { type: String, required: true }
 })
 
 const emit = defineEmits(['update'])
-const hasNoActivity = computed(() => activiteData.value.noActivity === true)
 
-const activiteData = ref({ activities: [] })
+const activiteData = ref({ activite: [], noActivity: false })
+
 const newActivity = ref({ type: '', duration: '', intensity: '', notes: '' })
 
 const quickActivities = [
@@ -250,45 +250,44 @@ const caloriesPerMinute = {
   yoga: { faible: 2, moderee: 3, intense: 4 }
 }
 
+const hasNoActivity = computed(() => activiteData.value.noActivity === true)
+
 const canAddActivity = computed(() => {
   return newActivity.value.type && newActivity.value.duration && newActivity.value.intensity
 })
 
+const nbActivity = computed(() => activiteData.value.activite.length)
+
+const calculateCalories = (type, duration, intensity) => {
+  const rates = caloriesPerMinute[type] || { faible: 4, moderee: 6, intense: 8 }
+  const rate = rates[intensity] || rates.moderee
+  return Math.round(rate * Number(duration))
+}
+
 const totalDuration = computed(() => {
-  const total = activiteData.value.activities.reduce((sum, activity) => sum + parseInt(activity.duration), 0)
+  const total = activiteData.value.activite.reduce((sum, activity) => sum + Number(activity.duration), 0)
   const hours = Math.floor(total / 60)
   const minutes = total % 60
   return hours > 0 ? `${hours}h${minutes.toString().padStart(2, '0')}` : `${minutes}min`
 })
 
 const totalCalories = computed(() => {
-  return activiteData.value.activities.reduce((sum, activity) => {
+  return activiteData.value.activite.reduce((sum, activity) => {
     const calories = calculateCalories(activity.type, activity.duration, activity.intensity)
     return sum + calories
   }, 0)
 })
 
 const dominantIntensity = computed(() => {
-  if (activiteData.value.activities.length === 0) return '--'
-  
-  const intensities = activiteData.value.activities.map(a => a.intensity)
-  const counts = intensities.reduce((acc, intensity) => {
-    acc[intensity] = (acc[intensity] || 0) + 1
+  if (activiteData.value.activite.length === 0) return '--'
+  const counts = activiteData.value.activite.reduce((acc, a) => {
+    acc[a.intensity] = (acc[a.intensity] || 0) + 1
     return acc
   }, {})
-  
-  const dominant = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b)
-  return getIntensityLabel(dominant)
+  return getIntensityLabel(Object.entries(counts).reduce((a, b) => a[1] > b[1] ? a : b)[0])
 })
 
-const isDataComplete = computed(() => activiteData.value.activities.length > 0)
-
-// Méthode pour calculer les calories
-const calculateCalories = (type, duration, intensity) => {
-  const rates = caloriesPerMinute[type] || { faible: 4, moderee: 6, intense: 8 }
-  const rate = rates[intensity] || rates.moderee
-  return Math.round(rate * parseInt(duration))
-}
+const isDataComplete = computed(() => activiteData.value.activite.length > 0)
 
 const addQuickActivity = (activity) => {
   if (hasNoActivity.value) return
@@ -302,13 +301,13 @@ const addQuickActivity = (activity) => {
     timestamp: new Date().toISOString()
   }
   
-  activiteData.value.activities.push(newActivityData)
+  activiteData.value.activite.push(newActivityData)
   updateData()
 }
 
 const setNoActivity = () => {
   activiteData.value.noActivity = true
-  activiteData.value.activities = [] 
+  activiteData.value.activite = []
   updateData()
 }
 
@@ -329,13 +328,13 @@ const addCustomActivity = () => {
     timestamp: new Date().toISOString()
   }
   
-  activiteData.value.activities.push(activity)
+  activiteData.value.activite.push(activity)
   newActivity.value = { type: '', duration: '', intensity: '', notes: '' }
   updateData()
 }
 
 const removeActivity = (index) => {
-  activiteData.value.activities.splice(index, 1)
+  activiteData.value.activite.splice(index, 1)
   updateData()
 }
 
@@ -359,25 +358,63 @@ const getIntensityLabel = (intensity) => {
   return labels[intensity] || 'Modérée'
 }
 
-const updateData = () => {
-  saveData()
-  emit('update', 'activite', isDataComplete.value)
-}
+const key = `journal-${userEmailOrGuest()}-${props.date}`
 
-const saveData = () => {
-  const key = `activite-${props.date}`
-  localStorage.setItem(key, JSON.stringify(activiteData.value))
+const updateData = () => {
+  const savedStr = localStorage.getItem(key)
+  let journalData = savedStr ? JSON.parse(savedStr) : {}
+
+  if (!journalData.completions) journalData.completions = {}
+  if (!journalData.completions.activite) journalData.completions.activite = {}
+
+  journalData.completions.activite[props.date] = JSON.parse(JSON.stringify(activiteData.value))
+  journalData.lastUpdated = new Date().toISOString()
+  journalData.activite = {
+    nbActivites: activiteData.value.activite.length,
+    nomsActivites: activiteData.value.activite.map(a => getActivityName(a.type))
+  }
+  localStorage.setItem(key, JSON.stringify(journalData))
+
+  emitUpdate()
 }
 
 const loadData = () => {
-  const key = `activite-${props.date}`
-  const savedData = localStorage.getItem(key)
-  if (savedData) {
-    activiteData.value = JSON.parse(savedData)
-  } else {
-    activiteData.value = { activities: [], noActivity: false }
+  const savedStr = localStorage.getItem(key)
+  if (!savedStr) {
+    activiteData.value.activite = []
+    activiteData.value.noActivity = false
+    activiteData.value.nbActivity = 0
+    emitUpdate()
+    return
   }
-  emit('update', 'activite', isDataComplete.value)
+
+  const journalData = JSON.parse(savedStr)
+  if (journalData.completions && journalData.completions.activite && journalData.completions.activite[props.date]) {
+    const savedActivite = journalData.completions.activite[props.date]
+    activiteData.value.activite = savedActivite.activite || []
+    activiteData.value.noActivity = savedActivite.noActivity || false
+  } else {
+    activiteData.value.activite = []
+    activiteData.value.noActivity = false
+  }
+
+  activiteData.value.nomsActivites = journalData.activite?.nomsActivites || []
+
+  emitUpdate()
+}
+
+const emitUpdate = () => {
+  emit('update', 'activite', isDataComplete.value, {
+    activite: activiteData.value.activite,
+    activityCount: activiteData.value.activite.length,
+    noActivity: activiteData.value.noActivity,
+    nbActivity: nbActivity.value
+  })
+}
+
+function userEmailOrGuest() {
+  const user = JSON.parse(localStorage.getItem('user')) || null
+  return user?.email || 'guest'
 }
 
 watch(() => props.date, loadData)

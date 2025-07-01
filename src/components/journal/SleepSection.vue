@@ -119,7 +119,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import '../assets/journal/sleep.css'
+import '../../assets/journal/sleep.css'
 
 const props = defineProps({
   date: { type: String, required: true }
@@ -278,33 +278,54 @@ const selectWakeFeeling = (feeling) => {
 }
 
 const updateData = () => {
-  saveData()
-  emit('update', 'sommeil', isDataComplete.value)
-}
+  const key = `journal-${userEmailOrGuest()}-${props.date}`
+  const journalData = JSON.parse(localStorage.getItem(key)) || {}
 
-const saveData = () => {
-  const key = `sommeil-${props.date}`
-  const data = {
+  journalData.completions = journalData.completions || {}
+  journalData.completions.sommeil = {
+    sleepMinutesTotal: sleepMinutesTotal.value,
+    wakeFeeling: sleepData.value.wakeFeeling
+  }
+
+  journalData.sommeil = {
     sleepMinutesTotal: sleepMinutesTotal.value,
     sleepHours: sleepHours.value,
     sleepMinutes: sleepMinutes.value,
     wakeFeeling: sleepData.value.wakeFeeling
   }
-  localStorage.setItem(key, JSON.stringify(data))
+
+  journalData.lastUpdated = new Date().toISOString()
+
+  localStorage.setItem(key, JSON.stringify(journalData))
+
+  emit('update', 'sommeil', isDataComplete.value, {
+    sleepMinutesTotal: sleepMinutesTotal.value,
+    wakeFeeling: sleepData.value.wakeFeeling
+  })
 }
 
 const loadData = () => {
-  const key = `sommeil-${props.date}`
+  const key = `journal-${userEmailOrGuest()}-${props.date}`
   const savedData = localStorage.getItem(key)
   if (savedData) {
     const data = JSON.parse(savedData)
-    sleepMinutesTotal.value = data.sleepMinutesTotal || 480
-    sleepData.value.wakeFeeling = data.wakeFeeling || null
+    if (data.sommeil) {
+      sleepMinutesTotal.value = data.sommeil.sleepMinutesTotal || 480
+      sleepData.value.wakeFeeling = data.sommeil.wakeFeeling || null
+    }
   } else {
-    sleepMinutesTotal.value = 480 
+    sleepMinutesTotal.value = 480
     sleepData.value.wakeFeeling = null
   }
-  emit('update', 'sommeil', isDataComplete.value)
+  emit('update', 'sommeil', isDataComplete.value, {
+    sleepMinutesTotal: sleepMinutesTotal.value,
+    wakeFeeling: sleepData.value.wakeFeeling
+  })
+}
+
+function userEmailOrGuest() {
+  const user = JSON.parse(localStorage.getItem('user')) || null
+  return user?.email || 'guest'
 }
 
 watch(() => props.date, loadData)

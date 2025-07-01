@@ -14,11 +14,16 @@ const router = createRouter({
       name: 'journal',
       component: () => import('../views/JournalView.vue'),
     },
-    // {
-    //   path: '/about',
-    //   name: 'about',
-    //   component: () => import('../views/AboutView.vue'),
-    // },
+    {
+      path: '/parametres',
+      name: 'parametres',
+      component: () => import('../views/SettingsView.vue'),
+    },
+    {
+      path: '/settings/history',
+      name: 'history',
+      component: () => import('../components/settings/HistoryView.vue'),
+    },
   ],
 })
 

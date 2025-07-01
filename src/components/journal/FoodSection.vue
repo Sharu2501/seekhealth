@@ -267,7 +267,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import '../assets/journal/food.css'
+import '../../assets/journal/food.css'
 
 const props = defineProps({
   date: { type: String, required: true }
@@ -440,19 +440,44 @@ const updateData = () => {
 }
 
 const saveData = () => {
-  const key = `alimentation-${props.date}`
-  localStorage.setItem(key, JSON.stringify(alimentationData.value))
+  const key = `journal-${userEmailOrGuest()}-${props.date}`
+  const existingEntry = JSON.parse(localStorage.getItem(key)) || {}
+
+  const alimentation = JSON.parse(JSON.stringify(alimentationData.value))
+
+  const mealNames = Object.fromEntries(
+    Object.entries(alimentation).map(([mealType, items]) => [
+      mealType,
+      items.map(item => item.description)
+    ])
+  )
+
+  existingEntry.alimentation = alimentation
+
+  existingEntry.completions = existingEntry.completions || {}
+  existingEntry.completions.alimentation = {
+    isComplete: isDataComplete.value,
+    mealNames
+  }
+
+  localStorage.setItem(key, JSON.stringify(existingEntry))
 }
 
 const loadData = () => {
-  const key = `alimentation-${props.date}`
-  const savedData = localStorage.getItem(key)
-  if (savedData) {
-    alimentationData.value = JSON.parse(savedData)
+  const key = `journal-${userEmailOrGuest()}-${props.date}`
+  const savedData = JSON.parse(localStorage.getItem(key))
+
+  if (savedData?.alimentation) {
+    alimentationData.value = savedData.alimentation
   } else {
     alimentationData.value = { breakfast: [], lunch: [], dinner: [], snacks: [] }
   }
   emit('update', 'alimentation', isDataComplete.value)
+}
+
+function userEmailOrGuest() {
+  const user = JSON.parse(localStorage.getItem('user')) || null
+  return user?.email || 'guest'
 }
 
 watch(() => props.date, loadData)

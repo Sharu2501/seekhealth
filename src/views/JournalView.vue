@@ -150,10 +150,10 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import SleepSection from '@/components/SleepSection.vue'
-import MoodSection from '@/components/MoodSection.vue'
-import ActivitySection from '@/components/ActivitySection.vue'
-import FoodSection from '@/components/FoodSection.vue'
+import SleepSection from '@/components/journal/SleepSection.vue'
+import MoodSection from '@/components/journal/MoodSection.vue'
+import ActivitySection from '@/components/journal/ActivitySection.vue'
+import FoodSection from '@/components/journal/FoodSection.vue'
 import '../assets/journal/journal.css'
 const isDarkMode = ref(false)
 
@@ -188,7 +188,7 @@ const FoodIcon = {
   </svg>`
 }
 
-defineProps({ user: Object })
+const { user } = defineProps({ user: Object })
 
 const activeSection = ref('sommeil')
 const selectedDate = ref(new Date().toISOString().split('T')[0])
@@ -216,10 +216,7 @@ const currentSectionTitle = computed(() => {
 const formattedDate = computed(() => {
   const date = new Date(selectedDate.value)
   return date.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   })
 })
 
