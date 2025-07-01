@@ -71,6 +71,15 @@
     </table>
 
     <p v-else class="empty-message">Aucune donnée disponible pour la période sélectionnée.</p>
+
+    <button
+      v-if="filteredEntries.length"
+      @click="exportCSV"
+      class="export-button"
+    >
+      📄 Exporter au format CSV
+    </button>
+
   </div>
 </template>
 
@@ -232,6 +241,93 @@ const goBack = () => {
 }
 
 onMounted(loadHistory)
+
+const exportCSV = () => {
+  const userId = user.email || 'Guest'
+
+  const headers = [
+    'ID utilisateur',
+    'Date',
+    'Sommeil (durée)',
+    'Sommeil (ressenti)',
+    'Humeur principale',
+    'Humeur intensité',
+    'Humeur émotions',
+    'Humeur facteurs',
+    'Activités',
+    'Repas pris',
+    'Complétude %'
+  ]
+
+  const rows = filteredEntries.value.map(entry => {
+    const date = formatDate(entry.date)
+
+    // Sommeil
+    const sleep = entry.sommeil
+    const sleepDuration = sleep ? `${Math.floor(sleep.sleepMinutesTotal / 60)}h${(sleep.sleepMinutesTotal % 60).toString().padStart(2, '0')}` : '—'
+    const sleepFeeling = sleep?.wakeFeeling?.label
+      ? `${sleep.wakeFeeling.label}${sleep.wakeFeeling.icon ? ` (${sleep.wakeFeeling.icon})` : ''}`
+      : '—'
+
+    // Humeur
+    const humeur = entry.humeur
+    const mainMood = humeur?.mainMood || '—'
+    const intensity = humeur?.intensity ? `${humeur.intensity}/10` : '—'
+    const emotions = humeur?.secondaryEmotions?.join(', ') || '—'
+    const factors = humeur?.factors?.join(', ') || '—'
+
+    // Activités
+    const activite = entry.activite
+    const activiteStr = activite?.nbActivites
+      ? `${activite.nbActivites} activité(s) (${activite.nomsActivites})`
+      : '—'
+
+    // Alimentation
+    const alim = entry.alimentation
+    const mealLabels = {
+      breakfast: 'Petit-déjeuner',
+      lunch: 'Déjeuner',
+      dinner: 'Dîner',
+      snacks: 'Snacks'
+    }
+
+    const repas = Object.entries(mealLabels).map(([key, label]) => {
+      const items = alim?.[key] || []
+      const desc = items.map(i => i.description).filter(Boolean).join(', ')
+      return `${label}: ${desc || '—'}`
+    }).join(' | ')
+
+    const percent = computePercentage(entry.completions) + '%'
+
+    return [
+      userId,
+      date,
+      sleepDuration,
+      sleepFeeling,
+      mainMood,
+      intensity,
+      emotions,
+      factors,
+      activiteStr,
+      repas,
+      percent
+    ].map(value => `"${value.replace(/"/g, '""')}"`).join(',')
+  })
+
+  const csvContent = [headers.join(','), ...rows].join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  const dateStr = new Date().toISOString().split('T')[0]
+  const emailSafe = (user?.email || 'invité').replace(/[^a-zA-Z0-9-_@.]/g, '_')
+  link.download = `journal-${emailSafe}-${dateStr}.csv`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
 </script>
 
 <style scoped>
@@ -356,7 +452,6 @@ onMounted(loadHistory)
   text-align: center;
 }
 
-/* Tooltips */
 .tooltip {
   position: relative;
   cursor: help;
@@ -451,6 +546,25 @@ td > span[aria-label="Complété"] {
 .back-button:hover {
   background-color: var(--accent-primary);
   color: white;
+}
+
+.export-button {
+  margin-top: 1.5rem;
+  padding: 0.6rem 1.4rem;
+  background-color: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-medium);
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.export-button:hover {
+  background-color: var(--accent-secondary);
+  box-shadow: var(--shadow-accent);
 }
 
 </style>

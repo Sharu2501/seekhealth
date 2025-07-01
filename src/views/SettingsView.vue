@@ -17,7 +17,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-defineProps({ user: Object })
+const { user } = defineProps({ user: Object })
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const journalData = ref(null)
