@@ -106,8 +106,7 @@ loadJournalHistory()
   color: white;
 }
 
-.btn-secondary:active,
-.btn-secondary.active {
+.btn-secondary:active {
   background: var(--accent-primary);
   color: white;
 }
