@@ -513,7 +513,6 @@ const exportCSV = () => {
 }
 
 td > span[aria-label="Non complété"] {
-  color: #e53935;
   font-weight: var(--font-weight-bold);
   font-size: 1.3rem;
   user-select: none;

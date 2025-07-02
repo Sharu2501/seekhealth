@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { RouterView } from 'vue-router'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, RouterView } from 'vue-router'
 import Header from './components/Header.vue'
 
 const user = ref(null)
+const router = useRouter()
 
 function handleLoginSuccess(loggedInUser) {
   user.value = loggedInUser
@@ -13,6 +14,7 @@ function handleLoginSuccess(loggedInUser) {
 function handleLogout() {
   user.value = null
   localStorage.removeItem('user')
+  router.push('/')
 }
 
 onMounted(() => {
