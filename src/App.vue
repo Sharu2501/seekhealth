@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, RouterView } from 'vue-router'
 import Header from './components/Header.vue'
 
