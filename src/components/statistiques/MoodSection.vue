@@ -143,10 +143,7 @@ defineExpose({
   height: 500px;
   margin: 0 auto;
 }
-.best-day {
-  color: var(--accent-primary);
-  font-weight: bold;
-}
+
 .info-cards {
   display: flex;
   gap: 1rem;
