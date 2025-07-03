@@ -23,6 +23,11 @@ const router = createRouter({
       component: () => import('../views/JournalView.vue'),
     },
     {
+      path: '/statistiques',
+      name: 'statistiques',
+      component: () => import('../views/StatistiqueView.vue'),
+    },
+    {
       path: '/parametres',
       name: 'parametres',
       component: () => import('../views/SettingsView.vue'),
