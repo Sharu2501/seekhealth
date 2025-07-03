@@ -99,6 +99,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .home-welcome {
@@ -108,12 +111,13 @@ onMounted(() => {
 
 .home-title {
   font-size: 2.5rem;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
 }
 
 .home-subtitle {
   font-size: 1.2rem;
-  color: #666;
+  color: var(--text-secondary);
   margin-top: 0.5rem;
 }
 
@@ -122,20 +126,23 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  width: 100%;
+  max-width: 320px;
 }
 
 .home-progress-card {
-  background: #fff;
-  border-radius: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   text-align: center;
-  width: 300px;
+  width: 100%;
 }
 
 .card-title {
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
 }
 
 .progress-ring-container {
@@ -149,9 +156,14 @@ onMounted(() => {
   transform: rotate(-90deg);
 }
 
+.progress-ring-background {
+  stroke: var(--border-light);
+}
+
 .progress-ring-foreground {
   transition: stroke-dashoffset 0.5s ease;
   stroke-linecap: round;
+  stroke: url(#gradient);
 }
 
 .progress-center-text {
@@ -159,13 +171,14 @@ onMounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   font-size: 1.2rem;
+  color: var(--text-primary);
 }
 
 .card-subtitle {
   margin-top: 0.5rem;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .home-actions {
@@ -173,6 +186,7 @@ onMounted(() => {
   gap: 1rem;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
 }
 
 .action-button {
@@ -180,17 +194,43 @@ onMounted(() => {
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 999px;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
-  transition: transform 0.2s;
+  transition: transform 0.2s, background-color 0.3s ease;
+  text-align: center;
+  flex: 1 1 140px;
 }
 
 .action-button.secondary {
-  background: #f5f5f5;
-  color: #333;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .action-button:hover {
   transform: scale(1.05);
+  background: linear-gradient(to right, var(--accent-hover), var(--accent-primary));
+  color: white;
+}
+
+body.dark-theme .home-progress-card {
+  box-shadow: var(--shadow-lg);
+}
+
+body.dark-theme .progress-ring-background {
+  stroke: var(--border-medium);
+}
+
+body.dark-theme .card-subtitle {
+  color: var(--text-secondary);
+}
+
+body.dark-theme .action-button.secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+body.dark-theme .action-button.secondary:hover {
+  background: var(--accent-primary);
+  color: white;
 }
 </style>
