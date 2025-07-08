@@ -1,7 +1,7 @@
 <template>
   <div class="chart-container">
     <div class="header">
-      <h2>😄 Évolution de l’humeur</h2>
+      <h2>😄 Évolution de l'humeur</h2>
       <div class="chart-switch">
         <button @click="currentType = 'bar'" :class="{ active: currentType === 'bar' }">📊</button>
         <button @click="currentType = 'line'" :class="{ active: currentType === 'line' }">📈</button>
@@ -9,38 +9,39 @@
       </div>
     </div>
 
-    
-
     <div class="chart-wrapper">
       <component :is="chartComponent" :data="chartData" :options="chartOptions" />
       <div class="info-cards">
-      <div class="info-card">
-        <p class="label">Note moyenne</p>
-        <p class="value">8/ 10</p>
+        <div class="info-card">
+          <p class="label">Note moyenne</p>
+          <p class="value">{{ stats.moyenne }}</p>
+        </div>
+        <div class="info-card">
+          <p class="label">Jour le plus positif</p>
+          <p class="value">{{ stats.positif }}</p>
+        </div>
+        <div class="info-card">
+          <p class="label">Jour le plus bas</p>
+          <p class="value">{{ stats.bas }}</p>
+        </div>
+        <div class="info-card">
+          <p class="label">Jours suivis</p>
+          <p class="value">{{ stats.joursSuivis }}</p>
+        </div>
       </div>
-      <div class="info-card">
-        <p class="label">Jour le plus positif</p>
-        <p class="value">Samedi</p>
-      </div>
-      <div class="info-card">
-        <p class="label">Jour le plus bas</p>
-        <p class="value">Lundi</p>
-      </div>
-    
-    </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   Chart as ChartJS,
   Title, Tooltip, Legend, BarElement, ArcElement, LineElement,
   PointElement, CategoryScale, LinearScale
 } from 'chart.js'
-
 import { Bar, Line, Pie } from 'vue-chartjs'
+import { JournalDataService } from '../../services/journalDataService.js'
 
 ChartJS.register(
   Title, Tooltip, Legend,
@@ -49,6 +50,13 @@ ChartJS.register(
 )
 
 const currentType = ref('bar')
+const realData = ref({ labels: [], values: [] })
+const stats = ref({
+  moyenne: '--',
+  positif: '--',
+  bas: '--',
+  joursSuivis: '0/7'
+})
 
 const chartComponent = computed(() => {
   if (currentType.value === 'line') return Line
@@ -56,30 +64,27 @@ const chartComponent = computed(() => {
   return Bar
 })
 
-const dataValues = [5, 6, 6.5, 6, 7, 8, 6.5]
-const labels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-
 const chartData = computed(() => {
   if (currentType.value === 'pie') {
     return {
-      labels,
+      labels: realData.value.labels,
       datasets: [{
         label: 'Répartition humeur',
         backgroundColor: ['#a78bfa', '#c084fc', '#d8b4fe', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#ede9fe'],
-        data: dataValues
+        data: realData.value.values
       }]
     }
   }
 
   return {
-    labels,
+    labels: realData.value.labels,
     datasets: [{
       label: 'Humeur (sur 10)',
       backgroundColor: '#c084fc',
       borderColor: '#a78bfa',
       tension: 0.4,
       fill: currentType.value === 'line',
-      data: dataValues
+      data: realData.value.values
     }]
   }
 })
@@ -89,7 +94,16 @@ const chartOptions = computed(() => ({
   maintainAspectRatio: false,
   plugins: {
     legend: { display: true },
-    tooltip: { backgroundColor: '#fff', titleColor: '#000', bodyColor: '#000' }
+    tooltip: { 
+      backgroundColor: '#fff', 
+      titleColor: '#000', 
+      bodyColor: '#000',
+      callbacks: {
+        label: function(context) {
+          return `Humeur: ${context.parsed.y}/10`
+        }
+      }
+    }
   },
   scales: currentType.value === 'pie' ? {} : {
     x: {
@@ -98,7 +112,7 @@ const chartOptions = computed(() => ({
       grid: { color: '#ccc' }
     },
     y: {
-      title: { display: true, text: 'Note d’humeur', color: '#666' },
+      title: { display: true, text: "Note d'humeur", color: '#666' },
       beginAtZero: true,
       max: 10,
       ticks: { color: '#666' },
@@ -107,15 +121,34 @@ const chartOptions = computed(() => ({
   }
 }))
 
+const loadRealData = () => {
+  try {
+    const { startDate, endDate } = JournalDataService.getCurrentWeekPeriod()
+    
+    // Charge les données d'humeur
+    const moodData = JournalDataService.getMoodDataForPeriod(startDate, endDate)
+    
+    // Obtient les données formatées pour le graphique
+    const chartData = JournalDataService.getMoodChartData(startDate, endDate)
+    realData.value = chartData
+    
+    // Calcule les statistiques
+    stats.value = JournalDataService.calculateMoodStats(moodData)
+    
+    console.log('Données d\'humeur chargées:', { moodData, chartData, stats: stats.value })
+  } catch (error) {
+    console.error('Erreur lors du chargement des données d\'humeur:', error)
+    // Garde les valeurs par défaut en cas d'erreur
+  }
+}
+
 defineExpose({
-  getStats: () => ({
-    moyenne: '7.4 / 10',
-    positif: 'Vendredi',
-    bas: 'Mardi',
-    joursSuivis: '7/7'
-  })
+  getStats: () => stats.value
 })
 
+onMounted(() => {
+  loadRealData()
+})
 </script>
 
 <style scoped>
@@ -142,10 +175,6 @@ defineExpose({
   max-width: 1500px;
   height: 500px;
   margin: 0 auto;
-}
-.best-day {
-  color: var(--accent-primary);
-  font-weight: bold;
 }
 .info-cards {
   display: flex;
@@ -178,5 +207,4 @@ defineExpose({
   font-weight: 600;
   color: var(--text-primary);
 }
-
 </style>

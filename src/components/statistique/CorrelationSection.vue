@@ -4,62 +4,67 @@
       <h2>📊 Corrélation activité / humeur</h2>
     </div>
 
-
     <div class="chart-wrapper">
       <Scatter :data="chartData" :options="chartOptions" />
       <div class="info-cards">
-      <div class="info-card">
-        <p class="label">Corrélation estimée</p>
-        <p class="value">+0.72</p>
+        <div class="info-card">
+          <p class="label">Corrélation estimée</p>
+          <p class="value">{{ stats.correlation }}</p>
+        </div>
+        <div class="info-card">
+          <p class="label">Jours actifs</p>
+          <p class="value">{{ activeData.joursActifs }}</p>
+        </div>
+        <div class="info-card">
+          <p class="label">Jour avec plus d'activité</p>
+          <p class="value">{{ stats.actif }}</p>
+        </div>
+        <div class="info-card">
+          <p class="label">Jour avec meilleure humeur</p>
+          <p class="value">{{ stats.humeur }}</p>
+        </div>
       </div>
-      <div class="info-card">
-        <p class="label">Jours actifs</p>
-        <p class="value">5 / 7</p>
-      </div>
-      <div class="info-card">
-        <p class="label">Jour avec plus d'activité</p>
-        <p class="value">Samedi</p>
-      </div>
-      <div class="info-card">
-        <p class="label">Jour avec meilleure humeur</p>
-        <p class="value">Dimanche</p>
-      </div>
-    </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
 import {
   Chart as ChartJS,
   Title, Tooltip, Legend,
   PointElement, LinearScale
 } from 'chart.js'
-
 import { Scatter } from 'vue-chartjs'
+import { JournalDataService } from '../../services/journalDataService.js'
 
 ChartJS.register(
   Title, Tooltip, Legend,
   PointElement, LinearScale
 )
 
-const chartData = {
+const correlationData = ref([])
+const stats = ref({
+  correlation: '--',
+  actif: '--',
+  humeur: '--'
+})
+const activeData = ref({
+  joursActifs: '0/7'
+})
+
+const chartData = computed(() => ({
   datasets: [
     {
       label: 'Activité (min) vs Humeur (/10)',
-      data: [
-        { x: 30, y: 3.5 },
-        { x: 45, y: 4 },
-        { x: 60, y: 5.5 },
-        { x: 90, y: 7 },
-        { x: 80, y: 6.5 },
-        { x: 100, y: 8 },
-        { x: 0, y: 2 }
-      ],
-      backgroundColor: '#a78bfa'
+      data: correlationData.value,
+      backgroundColor: '#a78bfa',
+      borderColor: '#8b5cf6',
+      pointRadius: 6,
+      pointHoverRadius: 8
     }
   ]
-}
+}))
 
 const chartOptions = {
   responsive: true,
@@ -69,12 +74,17 @@ const chartOptions = {
     tooltip: {
       backgroundColor: '#fff',
       titleColor: '#000',
-      bodyColor: '#000'
+      bodyColor: '#000',
+      callbacks: {
+        label: function(context) {
+          return `Activité: ${context.parsed.x}min, Humeur: ${context.parsed.y}/10`
+        }
+      }
     }
   },
   scales: {
     x: {
-      title: { display: true, text: 'Activité (min)', color: '#666' },
+      title: { display: true, text: 'Activité (minutes)', color: '#666' },
       beginAtZero: true,
       ticks: { color: '#666' },
       grid: { color: '#ccc' }
@@ -89,19 +99,60 @@ const chartOptions = {
   }
 }
 
+const loadRealData = () => {
+  try {
+    const { startDate, endDate } = JournalDataService.getCurrentWeekPeriod()
+    
+    // Charge les données d'activité et d'humeur
+    const activityData = JournalDataService.getActivityDataForPeriod(startDate, endDate)
+    const moodData = JournalDataService.getMoodDataForPeriod(startDate, endDate)
+    
+    // Obtient les données de corrélation pour le graphique
+    const correlationChartData = JournalDataService.getCorrelationChartData(startDate, endDate)
+    correlationData.value = correlationChartData
+    
+    // Calcule les statistiques de corrélation
+    stats.value = JournalDataService.calculateCorrelationStats(activityData, moodData)
+    
+    // Calcule le nombre de jours actifs
+    const joursActifsCount = activityData.filter(day => day.totalDuration > 0 && !day.noActivity).length
+    activeData.value.joursActifs = `${joursActifsCount}/7`
+    
+    console.log('Données de corrélation chargées:', { 
+      activityData, 
+      moodData, 
+      correlationChartData, 
+      stats: stats.value,
+      activeData: activeData.value
+    })
+  } catch (error) {
+    console.error('Erreur lors du chargement des données de corrélation:', error)
+    // Garde les valeurs par défaut en cas d'erreur
+  }
+}
+
 defineExpose({
   getStats: () => ({
-    correlation: '+0.72',
-    actif: 'Samedi',
-    humeur: 'Dimanche'
+    ...stats.value,
+    joursActifs: activeData.value.joursActifs
   })
 })
 
+onMounted(() => {
+  loadRealData()
+})
 </script>
 
 <style scoped>
-.chart-container { padding: 1.5rem; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.chart-container { 
+  padding: 1.5rem; 
+}
+.header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 1rem; 
+}
 .chart-wrapper {
   width: 100%;              
   max-width: 1500px;
@@ -139,5 +190,4 @@ defineExpose({
   font-weight: 600;
   color: var(--text-primary);
 }
-
 </style>

@@ -1,145 +1,146 @@
 <template>
   <div class="chart-container">
     <div class="header">
-      <h2>🛌 Qualité du sommeil</h2>
-      <div class="chart-switch">
-        <button @click="currentType = 'bar'" :class="{ active: currentType === 'bar' }">📊</button>
-        <button @click="currentType = 'line'" :class="{ active: currentType === 'line' }">📈</button>
-        <button @click="currentType = 'pie'" :class="{ active: currentType === 'pie' }">🥧</button>
-      </div>
+      <h2>📊 Corrélation activité / humeur</h2>
     </div>
 
     <div class="chart-wrapper">
-      <component :is="chartComponent" :data="chartData" :options="chartOptions" />
+      <Scatter :data="chartData" :options="chartOptions" />
       <div class="info-cards">
-      <div class="info-card">
-        <p class="label">Note moyenne</p>
-        <p class="value">6.4 / 10</p>
-      </div>
-      <div class="info-card">
-        <p class="label">Jour le plus positif</p>
-        <p class="value">Samedi</p>
-      </div>
-      <div class="info-card">
-        <p class="label">Jour le plus bas</p>
-        <p class="value">Lundi</p>
+        <div class="info-card">
+          <p class="label">Corrélation estimée</p>
+          <p class="value">{{ stats.correlation }}</p>
+        </div>
+        <div class="info-card">
+          <p class="label">Jours actifs</p>
+          <p class="value">{{ activeData.joursActifs }}</p>
+        </div>
+        <div class="info-card">
+          <p class="label">Jour avec plus d'activité</p>
+          <p class="value">{{ stats.actif }}</p>
+        </div>
+        <div class="info-card">
+          <p class="label">Jour avec meilleure humeur</p>
+          <p class="value">{{ stats.humeur }}</p>
+        </div>
       </div>
     </div>
-    </div>
-    
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
-  ArcElement,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
+  Title, Tooltip, Legend,
+  PointElement, LinearScale
 } from 'chart.js'
-
-import { Bar, Line, Pie } from 'vue-chartjs'
+import { Scatter } from 'vue-chartjs'
+import { JournalDataService } from '../../services/journalDataService.js'
 
 ChartJS.register(
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
-  ArcElement,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale
+  Title, Tooltip, Legend,
+  PointElement, LinearScale
 )
 
-const currentType = ref('bar')
-
-const chartComponent = computed(() => {
-  switch (currentType.value) {
-    case 'bar':
-      return Bar
-    case 'line':
-      return Line
-    case 'pie':
-      return Pie
-    default:
-      return Bar
-  }
+const correlationData = ref([])
+const stats = ref({
+  correlation: '--',
+  actif: '--',
+  humeur: '--'
+})
+const activeData = ref({
+  joursActifs: '0/7'
 })
 
-const chartData = computed(() => {
-  const data = [6.5, 7, 6, 7.5, 6.8, 8, 7.2]
-  const labels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-
-  if (currentType.value === 'pie') {
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'Répartition des heures de sommeil',
-          backgroundColor: [
-            '#a78bfa', '#c084fc', '#d8b4fe',
-            '#ddd6fe', '#e9d5ff', '#f3e8ff', '#ede9fe'
-          ],
-          data
-        }
-      ]
+const chartData = computed(() => ({
+  datasets: [
+    {
+      label: 'Activité (min) vs Humeur (/10)',
+      data: correlationData.value,
+      backgroundColor: '#a78bfa',
+      borderColor: '#8b5cf6',
+      pointRadius: 6,
+      pointHoverRadius: 8
     }
-  }
+  ]
+}))
 
-  return {
-    labels,
-    datasets: [
-      {
-        label: 'Heures de sommeil',
-        backgroundColor: '#a78bfa',
-        borderColor: '#8b5cf6',
-        tension: 0.4,
-        fill: currentType.value === 'line',
-        data
-      }
-    ]
-  }
-})
-
-const chartOptions = computed(() => ({
+const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: { display: true },
-    tooltip: { backgroundColor: '#fff', titleColor: '#000', bodyColor: '#000' }
+    tooltip: {
+      backgroundColor: '#fff',
+      titleColor: '#000',
+      bodyColor: '#000',
+      callbacks: {
+        label: function(context) {
+          return `Activité: ${context.parsed.x}min, Humeur: ${context.parsed.y}/10`
+        }
+      }
+    }
   },
-  scales: currentType.value === 'pie' ? {} : {
+  scales: {
     x: {
-      title: { display: true, text: 'Jour de la semaine', color: '#666' },
+      title: { display: true, text: 'Activité (minutes)', color: '#666' },
+      beginAtZero: true,
       ticks: { color: '#666' },
       grid: { color: '#ccc' }
     },
     y: {
-      title: { display: true, text: 'Heures de sommeil', color: '#666' },
+      title: { display: true, text: 'Humeur (/10)', color: '#666' },
       beginAtZero: true,
+      max: 10,
       ticks: { color: '#666' },
       grid: { color: '#ccc' }
     }
   }
-}))
+}
+
+const loadRealData = () => {
+  try {
+    const { startDate, endDate } = JournalDataService.getCurrentWeekPeriod()
+    
+    // Charge les données d'activité et d'humeur
+    const activityData = JournalDataService.getActivityDataForPeriod(startDate, endDate)
+    const moodData = JournalDataService.getMoodDataForPeriod(startDate, endDate)
+    
+    // Obtient les données de corrélation pour le graphique
+    const correlationChartData = JournalDataService.getCorrelationChartData(startDate, endDate)
+    correlationData.value = correlationChartData
+    
+    // Calcule les statistiques de corrélation
+    stats.value = JournalDataService.calculateCorrelationStats(activityData, moodData)
+    
+    // Calcule le nombre de jours actifs
+    const joursActifsCount = activityData.filter(day => day.totalDuration > 0 && !day.noActivity).length
+    activeData.value.joursActifs = `${joursActifsCount}/7`
+    
+    console.log('Données de corrélation chargées:', { 
+      activityData, 
+      moodData, 
+      correlationChartData, 
+      stats: stats.value,
+      activeData: activeData.value
+    })
+  } catch (error) {
+    console.error('Erreur lors du chargement des données de corrélation:', error)
+    // Garde les valeurs par défaut en cas d'erreur
+  }
+}
 
 defineExpose({
   getStats: () => ({
-    moyenne: '7h40',
-    meilleurJour: 'Samedi',
-    pireJour: 'Lundi',
-    joursSuivis: '7/7'
+    ...stats.value,
+    joursActifs: activeData.value.joursActifs
   })
 })
 
+onMounted(() => {
+  loadRealData()
+})
 </script>
 
 <style scoped>
