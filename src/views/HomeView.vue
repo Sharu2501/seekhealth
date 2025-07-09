@@ -89,6 +89,11 @@ const props = defineProps({
   user: Object
 })
 
+/**
+ * État de complétion des différentes sections du journal.
+ * Chaque propriété correspond à une section dont la complétion est suivie.
+ * @type {import('vue').Ref<{ sommeil: boolean, humeur: boolean, activite: boolean, alimentation: boolean }>}
+ */
 const sectionCompletions = ref({
   sommeil: false,
   humeur: false,
@@ -96,15 +101,36 @@ const sectionCompletions = ref({
   alimentation: false
 })
 
+/**
+ * Circonférence du cercle SVG de progression (r = 45).
+ * Utilisé pour calculer l'animation de progression.
+ * @type {import('vue').ComputedRef<number>}
+ */
 const circumference = computed(() => 2 * Math.PI * 45)
+
+/**
+ * Pourcentage des sections complétées dans la journée.
+ * Calculé dynamiquement à partir des valeurs vraies dans sectionCompletions.
+ * @type {import('vue').ComputedRef<number>}
+ */
 const completionPercentage = computed(() => {
   const completed = Object.values(sectionCompletions.value).filter(Boolean).length
   return Math.round((completed / 4) * 100)
 })
+
+/**
+ * Décalage à appliquer au cercle SVG pour animer la progression.
+ * Inversé par rapport à la complétion pour simuler un remplissage.
+ * @type {import('vue').ComputedRef<number>}
+ */
 const strokeDashoffset = computed(() => {
   return circumference.value - (completionPercentage.value / 100) * circumference.value
 })
 
+/**
+ * Lors du montage du composant, charge les données de complétion du journal
+ * stockées localement pour la date du jour (au format YYYY-MM-DD).
+ */
 onMounted(() => {
   const today = new Date().toISOString().split('T')[0]
   const saved = localStorage.getItem(`journal-${today}`)

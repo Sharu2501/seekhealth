@@ -83,8 +83,13 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { JournalDataService } from '@/services/journalDataService.js'
 import jsPDF from 'jspdf'
 
+/** Référence vers le composant SleepSection, permet d'accéder à `getStats()` */
 const sleep = ref(null)
+
+/** Référence vers le composant MoodSection, permet d'accéder à `getStats()` */
 const mood = ref(null)
+
+/** Référence vers le composant CorrelationSection, permet d'accéder à `getStats()` */
 const correlation = ref(null)
 
 const selectedPeriod = ref('week')
@@ -95,6 +100,15 @@ const insights = ref([])
 const totalDaysWithData = ref(0)
 const completionRate = ref(0)
 
+/**
+ * Renvoie un objet `{ startDate, endDate }` représentant la période analysée.
+ *
+ * - Si "custom", utilise les dates saisies par l'utilisateur
+ * - Si "lastWeek", calcule la semaine précédente à partir de la semaine actuelle
+ * - Sinon, utilise la semaine courante
+ *
+ * @returns {{ startDate: string, endDate: string }} Période analysée (format ISO: yyyy-mm-dd)
+ */
 const currentPeriod = computed(() => {
   if (selectedPeriod.value === 'custom' && customStartDate.value && customEndDate.value) {
     return {
@@ -117,6 +131,13 @@ const currentPeriod = computed(() => {
   }
 })
 
+/**
+ * Formate la période sélectionnée en texte lisible.
+ * Pour "custom", affiche les dates début/fin.
+ * Pour "week" ou "lastWeek", utilise des libellés fixes.
+ *
+ * @returns {string} Période formatée en français.
+ */
 const formatPeriod = () => {
   const start = new Date(currentPeriod.value.startDate)
   const end = new Date(currentPeriod.value.endDate)
@@ -136,12 +157,23 @@ const formatPeriod = () => {
   }
 }
 
+/**
+ * Change la période analysée et force le recalcul des données et des insights.
+ * Incrémente `periodKey` pour forcer le re-render des sections dépendantes.
+ */
 const onPeriodChange = () => {
   periodKey.value++
   calculateInsights()
   calculateDataSummary()
 }
 
+/**
+ * Résume les données du journal pour la période actuelle :
+ * - Nombre total de jours avec données
+ * - Taux de complétion basé sur les sections complètes
+ *
+ * Met à jour `totalDaysWithData` et `completionRate`.
+ */
 const calculateDataSummary = () => {
   try {
     const { startDate, endDate } = currentPeriod.value
@@ -169,6 +201,16 @@ const calculateDataSummary = () => {
   }
 }
 
+/**
+ * Calcule les insights automatiques à partir des données de sommeil, humeur et activité.
+ * Détecte des patterns tels que :
+ * - Sommeil insuffisant ou optimal
+ * - Humeur excellente ou faible
+ * - Activité physique élevée ou basse
+ * - Corrélation positive entre activité et humeur
+ *
+ * Met à jour la liste `insights`.
+ */
 const calculateInsights = () => {
   try {
     const { startDate, endDate } = currentPeriod.value
@@ -269,6 +311,15 @@ const calculateInsights = () => {
   }
 }
 
+/**
+ * Génère un fichier PDF contenant :
+ * - La période analysée
+ * - Statistiques de sommeil, humeur et corrélation activité/humeur
+ * - Les insights générés
+ * - Pied de page avec numéro de page et date
+ *
+ * Utilise les données extraites depuis les composants enfants via `ref`.
+ */
 const exporterPDF = () => {
   const doc = new jsPDF()
 

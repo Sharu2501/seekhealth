@@ -30,11 +30,26 @@
 import { ref, computed } from 'vue'
 import TestsView from '@/components/settings/TestsView.vue'
 
+/**
+ * Utilisateur connecté, fourni comme prop par le parent.
+ * Peut contenir : `name`, `email`, `gender`, etc.
+ * @type {{ name?: string, email?: string, gender?: string }}
+ */
 const { user } = defineProps({ user: Object })
 
+/**
+ * Date sélectionnée au format YYYY-MM-DD.
+ * Sert à filtrer ou charger des données spécifiques à une journée.
+ * @type {import('vue').Ref<string>}
+ */
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const journalData = ref(null)
 
+/**
+ * Date formatée lisible en français à partir de la date sélectionnée.
+ * Exemple de sortie : "mardi 9 juillet 2025".
+ * @returns {string} Date lisible au format long FR.
+ */
 const formattedDate = computed(() => {
   const date = new Date(selectedDate.value)
   return date.toLocaleDateString('fr-FR', {
@@ -45,12 +60,23 @@ const formattedDate = computed(() => {
   })
 })
 
+/**
+ * Charge les données de journal stockées localement selon la date sélectionnée.
+ * Clé utilisée : "journal-YYYY-MM-DD".
+ * Si aucune donnée trouvée, `journalData` est défini à `null`.
+ * @returns {void}
+ */
 const loadJournalHistory = () => {
   const key = `journal-${selectedDate.value}`
   const saved = localStorage.getItem(key)
   journalData.value = saved ? JSON.parse(saved) : null
 }
 
+/**
+ * Convertit une chaîne de date ISO en date et heure locales françaises lisibles.
+ * @param {string} dateStr - Chaîne de date ISO, ex. "2025-07-09T12:34:00Z"
+ * @returns {string} Chaîne formatée : "09/07/2025 14:34" (en fonction du fuseau horaire)
+ */
 const formatDateTime = (dateStr) => {
   const date = new Date(dateStr)
   return date.toLocaleString('fr-FR')

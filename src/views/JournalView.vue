@@ -201,6 +201,10 @@ const sectionCompletions = ref({
   alimentation: false
 })
 
+/**
+ * Liste des sections du journal avec leur état de complétion et icône.
+ * @type {import('vue').ComputedRef<Array<{ id: string, label: string, icon: object, completed: boolean }>>}
+ */
 const sections = computed(() => [
   { id: 'sommeil', label: 'Sommeil', icon: MoonIcon, completed: sectionCompletions.value.sommeil },
   { id: 'humeur', label: 'Humeur', icon: SmileIcon, completed: sectionCompletions.value.humeur },
@@ -213,6 +217,10 @@ const currentSectionTitle = computed(() => {
   return section ? section.label : ''
 })
 
+/**
+ * Date formatée pour affichage (ex: "mardi 9 juillet 2024").
+ * @type {import('vue').ComputedRef<string>}
+ */
 const formattedDate = computed(() => {
   const date = new Date(selectedDate.value)
   return date.toLocaleDateString('fr-FR', {
@@ -220,12 +228,21 @@ const formattedDate = computed(() => {
   })
 })
 
+/**
+ * Pourcentage global de sections complétées pour une date donnée.
+ * @type {import('vue').ComputedRef<number>}
+ */
 const completionPercentage = computed(() => {
   const completedSections = Object.values(sectionCompletions.value).filter(Boolean).length
   return Math.round((completedSections / sections.value.length) * 100)
 })
 
 const circumferenceMini = computed(() => 2 * Math.PI * 16)
+
+/**
+ * Décalage du cercle de progression pour l'indicateur mini (SVG).
+ * @type {import('vue').ComputedRef<number>}
+ */
 const strokeDashoffsetMini = computed(() => {
   const progress = completionPercentage.value / 100
   return circumferenceMini.value - (progress * circumferenceMini.value)
@@ -245,6 +262,10 @@ const updateSectionCompletion = (sectionId, isCompleted) => {
   saveCompletionStatus()
 }
 
+/**
+ * Charge les données de complétion enregistrées localement pour une date spécifique.
+ * @param {string} date - Format YYYY-MM-DD
+ */
 const loadDataForDate = (date) => {
   const savedData = localStorage.getItem(`journal-${date}`)
   if (savedData) {
@@ -257,6 +278,9 @@ const loadDataForDate = (date) => {
   }
 }
 
+/**
+ * Sauvegarde l’état de complétion des sections dans le localStorage.
+ */
 const saveCompletionStatus = () => {
   const data = {
     completions: sectionCompletions.value,
@@ -265,6 +289,9 @@ const saveCompletionStatus = () => {
   localStorage.setItem(`journal-${selectedDate.value}`, JSON.stringify(data))
 }
 
+/**
+ * Gère le focus automatique sur le champ de date quand le sélecteur s’ouvre.
+ */
 watch(showDatePicker, async (newValue) => {
   if (newValue) {
     await nextTick()
