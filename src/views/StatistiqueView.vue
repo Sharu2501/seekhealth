@@ -76,9 +76,9 @@
 </template>
 
 <script setup>
-import SleepSection from '@/components/statistique/SleepSection.vue'
-import MoodSection from '@/components/statistique/MoodSection.vue'
-import CorrelationSection from '@/components/statistique/CorrelationSection.vue'
+import SleepSection from '@/components/statistiques/SleepSection.vue'
+import MoodSection from '@/components/statistiques/MoodSection.vue'
+import CorrelationSection from '@/components/statistiques/CorrelationSection.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { JournalDataService } from '@/services/journalDataService.js'
 import jsPDF from 'jspdf'
@@ -90,7 +90,7 @@ const correlation = ref(null)
 const selectedPeriod = ref('week')
 const customStartDate = ref('')
 const customEndDate = ref('')
-const periodKey = ref(0) // Pour forcer le rechargement des composants
+const periodKey = ref(0)
 const insights = ref([])
 const totalDaysWithData = ref(0)
 const completionRate = ref(0)
@@ -137,7 +137,6 @@ const formatPeriod = () => {
 }
 
 const onPeriodChange = () => {
-  // Force le rechargement des composants
   periodKey.value++
   calculateInsights()
   calculateDataSummary()
@@ -151,7 +150,7 @@ const calculateDataSummary = () => {
     totalDaysWithData.value = journalData.length
     
     if (journalData.length > 0) {
-      const totalSections = journalData.length * 4 // 4 sections par jour
+      const totalSections = journalData.length * 4
       const completedSections = journalData.reduce((sum, day) => {
         const completions = day.completions || {}
         return sum + Object.values(completions).filter(section => 
@@ -178,8 +177,7 @@ const calculateInsights = () => {
     const activityData = JournalDataService.getActivityDataForPeriod(startDate, endDate)
     
     const newInsights = []
-    
-    // Insight sur le sommeil
+
     if (sleepData.length > 0) {
       const avgSleep = sleepData.reduce((sum, day) => sum + day.sleepMinutesTotal, 0) / sleepData.length
       const avgHours = avgSleep / 60
@@ -202,8 +200,7 @@ const calculateInsights = () => {
         })
       }
     }
-    
-    // Insight sur l'humeur
+
     if (moodData.length > 0) {
       const avgMood = moodData.reduce((sum, day) => 
         sum + JournalDataService.moodToNumericValue(day.mainMood), 0) / moodData.length
@@ -226,8 +223,7 @@ const calculateInsights = () => {
         })
       }
     }
-    
-    // Insight sur l'activité
+
     if (activityData.length > 0) {
       const activeDays = activityData.filter(day => day.totalDuration > 0).length
       const activeRatio = activeDays / activityData.length
@@ -250,8 +246,7 @@ const calculateInsights = () => {
         })
       }
     }
-    
-    // Insight sur la corrélation
+
     if (activityData.length > 2 && moodData.length > 2) {
       const correlationStats = JournalDataService.calculateCorrelationStats(activityData, moodData)
       const correlation = parseFloat(correlationStats.correlation)
@@ -276,15 +271,13 @@ const calculateInsights = () => {
 
 const exporterPDF = () => {
   const doc = new jsPDF()
-  
-  // Récupère les statistiques des composants
+
   const sleepStats = sleep.value?.getStats() || {}
   const moodStats = mood.value?.getStats() || {}
   const correlationStats = correlation.value?.getStats() || {}
 
   let y = 20
-  
-  // Titre
+
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
   doc.text('RAPPORT SEEKHEALTH', 20, y)
@@ -298,8 +291,7 @@ const exporterPDF = () => {
   doc.text(`${totalDaysWithData.value} jour(s) avec données - ${completionRate.value}% de complétion`, 20, y)
   
   y += 20
-  
-  // Section Sommeil
+
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.text('🛌 SOMMEIL', 20, y)
@@ -316,8 +308,7 @@ const exporterPDF = () => {
   doc.text(`• Jours suivis : ${sleepStats.joursSuivis || '--'}`, 25, y)
   
   y += 15
-  
-  // Section Humeur
+
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.text('😄 HUMEUR', 20, y)
@@ -334,8 +325,7 @@ const exporterPDF = () => {
   doc.text(`• Jours suivis : ${moodStats.joursSuivis || '--'}`, 25, y)
   
   y += 15
-  
-  // Section Corrélation
+
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.text('📊 CORRELATION ACTIVITE / HUMEUR', 20, y)
@@ -350,8 +340,7 @@ const exporterPDF = () => {
   doc.text(`• Jour le plus actif : ${correlationStats.actif || '--'}`, 25, y)
   y += 7
   doc.text(`• Jour avec meilleure humeur : ${correlationStats.humeur || '--'}`, 25, y)
-  
-  // Section Insights
+
   if (insights.value.length > 0) {
     y += 20
     
@@ -364,7 +353,7 @@ const exporterPDF = () => {
     doc.setFont('helvetica', 'normal')
     
     insights.value.forEach(insight => {
-      if (y > 250) { // Nouvelle page si nécessaire
+      if (y > 250) {
         doc.addPage()
         y = 20
       }
@@ -377,8 +366,7 @@ const exporterPDF = () => {
       y += 10
     })
   }
-  
-  // Footer
+
   const pageCount = doc.internal.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
@@ -391,7 +379,6 @@ const exporterPDF = () => {
 }
 
 onMounted(() => {
-  // Initialise les dates personnalisées
   const { startDate, endDate } = JournalDataService.getCurrentWeekPeriod()
   customStartDate.value = startDate
   customEndDate.value = endDate
@@ -512,10 +499,11 @@ watch(currentPeriod, () => {
 .bottom-graph {
   display: flex;
   justify-content: center;
+  margin-top: 8rem;
 }
 
 .insights-section {
-  margin-top: 2rem;
+  margin-top: 8rem;
 }
 
 .insights-section h3 {
