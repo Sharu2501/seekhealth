@@ -7,6 +7,24 @@
       <p class="home-subtitle">
         Suivez votre bien-être au quotidien et complétez votre journal de santé.
       </p>
+
+      <img src="@/components/img/logo-seek-health.png" alt="Logo SeekHealth" class="logo-between" />
+    </div>
+
+    <div class="sections-grid">
+      <div
+        v-for="(completed, section) in sectionCompletions"
+        :key="section"
+        :class="['section-card', completed ? 'completed' : '']"
+      >
+        <div class="icon">
+          <span v-if="section === 'sommeil'">🛌</span>
+          <span v-else-if="section === 'humeur'">😊</span>
+          <span v-else-if="section === 'activite'">🏃‍♂️</span>
+          <span v-else-if="section === 'alimentation'">🥗</span>
+        </div>
+        <div class="section-name">{{ section.charAt(0).toUpperCase() + section.slice(1) }}</div>
+      </div>
     </div>
 
     <div class="home-dashboard">
@@ -50,12 +68,16 @@
 
       <div class="home-actions">
         <router-link to="/journal" class="action-button">
-          Accéder au journal
+          📝 Accéder au journal
         </router-link>
         <router-link to="/statistiques" class="action-button secondary">
-          Voir les statistiques
+          📊 Voir les statistiques
         </router-link>
       </div>
+    </div>
+
+    <div class="floating-bubbles">
+      <div class="bubble" v-for="i in 15" :key="i" :style="{'--i': i}"></div>
     </div>
   </div>
 </template>
@@ -95,18 +117,22 @@ onMounted(() => {
 
 <style scoped>
 .home-wrapper {
+  position: relative;
   padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   background-color: var(--bg-primary);
   color: var(--text-primary);
+  overflow: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .home-welcome {
   text-align: center;
   margin-bottom: 2rem;
+  z-index: 10;
+  position: relative;
 }
 
 .home-title {
@@ -121,6 +147,69 @@ onMounted(() => {
   margin-top: 0.5rem;
 }
 
+.logo-between {
+  display: block;
+  margin: 1rem auto 2rem auto;
+  width: 200px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* --- Grille Sections --- */
+.sections-grid {
+  grid-template-columns: repeat(4, 140px);
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  z-index: 10;
+  position: relative;
+}
+
+.section-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: var(--font-weight-semibold);
+  font-size: 1.1rem;
+}
+
+.section-card .icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  animation: bounce 2s infinite;
+}
+
+.section-card.completed {
+  background: linear-gradient(135deg, #6a5acd, #8a2be2);
+  color: white;
+  box-shadow: 0 0 12px #6a5acd;
+  animation: glow 1.5s infinite alternate;
+}
+
+.section-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 12px rgba(138, 43, 226, 0.6);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 8px #6a5acd; }
+  100% { box-shadow: 0 0 20px #8a2be2; }
+}
+
 .home-dashboard {
   display: flex;
   flex-direction: column;
@@ -128,6 +217,8 @@ onMounted(() => {
   gap: 2rem;
   width: 100%;
   max-width: 320px;
+  z-index: 10;
+  position: relative;
 }
 
 .home-progress-card {
@@ -137,6 +228,7 @@ onMounted(() => {
   box-shadow: var(--shadow-md);
   text-align: center;
   width: 100%;
+  position: relative;
 }
 
 .card-title {
@@ -199,6 +291,11 @@ onMounted(() => {
   transition: transform 0.2s, background-color 0.3s ease;
   text-align: center;
   flex: 1 1 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
 }
 
 .action-button.secondary {
@@ -232,5 +329,45 @@ body.dark-theme .action-button.secondary {
 body.dark-theme .action-button.secondary:hover {
   background: var(--accent-primary);
   color: white;
+}
+
+.floating-bubbles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 1;
+}
+
+.bubble {
+  position: absolute;
+  bottom: -40px;
+  width: calc(10px + var(--i) * 2px);
+  height: calc(10px + var(--i) * 2px);
+  background: linear-gradient(135deg, #8A2BE2, #6A5ACD);
+  border-radius: 50%;
+  opacity: calc(0.3 + var(--i) / 15);
+  animation: floatUp 8s linear infinite;
+  animation-delay: calc(var(--i) * -0.8s);
+  filter: drop-shadow(0 0 4px #6a5acd);
+  left: calc((var(--i) * 6.6vw) % 100vw);
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(15px) translateY(-50vh) scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0) translateY(-110vh) scale(0.5);
+    opacity: 0;
+  }
 }
 </style>
