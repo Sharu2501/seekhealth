@@ -12,6 +12,7 @@ const router = useRouter()
 function handleLoginSuccess(loggedInUser) {
   user.value = loggedInUser
   localStorage.setItem('user', JSON.stringify(loggedInUser))
+  router.push('/')
 }
 
 function handleLogout() {

@@ -26,6 +26,7 @@
         <th>Activité</th>
         <th>Alimentation</th>
         <th>%</th>
+        <th>Actions</th>
       </tr>
       </thead>
       <tbody>
@@ -66,6 +67,12 @@
         </td>
 
         <td>{{ computePercentage(entry.completions) }}%</td>
+        <td>
+          <button @click="deleteEntry(entry.date)" class="delete-button">
+            🗑️
+          </button>
+        </td>
+
       </tr>
       </tbody>
     </table>
@@ -328,6 +335,16 @@ const exportCSV = () => {
   URL.revokeObjectURL(url)
 }
 
+const deleteEntry = (dateStr) => {
+  const prefix = user?.email ? `journal-${user.email}-` : `journal-guest-`
+  const key = `${prefix}${dateStr}`
+
+  if (confirm(`Supprimer l'entrée du ${formatDate(dateStr)} ?`)) {
+    localStorage.removeItem(key)
+    loadHistory()
+  }
+}
+
 </script>
 
 <style scoped>
@@ -564,6 +581,20 @@ td > span[aria-label="Complété"] {
 .export-button:hover {
   background-color: var(--accent-secondary);
   box-shadow: var(--shadow-accent);
+}
+
+.delete-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #e53935;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.delete-button:hover {
+  color: #b71c1c;
+  transform: scale(1.2);
 }
 
 </style>

@@ -6,7 +6,19 @@
       <h2>Informations utilisateur</h2>
       <p><strong>Nom :</strong> {{ user?.name || 'Inconnu' }}</p>
       <p><strong>Email :</strong> {{ user?.email || 'Non défini' }}</p>
+      <p>
+        <strong>Genre :</strong>
+        <select v-model="localGender">
+          <option value="">Non renseigné</option>
+          <option value="homme">Homme</option>
+          <option value="femme">Femme</option>
+          <option value="autre">Autre</option>
+        </select>
+      </p>
+
     </section>
+
+    <TestsView></TestsView>
 
     <RouterLink to="/settings/history" class="btn-secondary">
       Voir l’historique complet
@@ -16,6 +28,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import TestsView from '@/components/settings/TestsView.vue'
 
 const { user } = defineProps({ user: Object })
 
@@ -115,4 +128,29 @@ ul {
   list-style: none;
   padding: 0;
 }
+
+select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: var(--font-family), serif;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  cursor: pointer;
+  outline: none;
+  min-width: 150px;
+}
+
+select:hover {
+  border-color: var(--accent-primary);
+}
+
+select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 5px var(--accent-primary);
+  background-color: var(--bg-secondary);
+}
+
 </style>

@@ -278,6 +278,10 @@ watch(selectedDate, (newDate) => {
   loadDataForDate(newDate)
 })
 
+watch(activeSection, async () => {
+  await nextTick()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
 onMounted(() => {
   loadDataForDate(selectedDate.value)
 })

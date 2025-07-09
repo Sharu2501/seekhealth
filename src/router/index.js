@@ -3,6 +3,14 @@ import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        resolve()
+      }, 100)
+    })
+  },
   routes: [
     {
       path: '/',
@@ -15,6 +23,11 @@ const router = createRouter({
       component: () => import('../views/JournalView.vue'),
     },
     {
+      path: '/statistiques',
+      name: 'statistiques',
+      component: () => import('../views/StatistiqueView.vue'),
+    },
+    {
       path: '/parametres',
       name: 'parametres',
       component: () => import('../views/SettingsView.vue'),
@@ -25,10 +38,10 @@ const router = createRouter({
       component: () => import('../components/settings/HistoryView.vue'),
     },
     {
-  path: '/statistiques',
-  name: 'statistiques',
-  component: () => import('../views/StatistiqueView.vue'),
-},
+      path: '/settings/cancer',
+      name: 'cancer',
+      component: () => import('../components/settings/Tests/TestCancer.vue'),
+    },
   ],
 })
 
