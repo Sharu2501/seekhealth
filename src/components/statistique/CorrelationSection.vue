@@ -103,18 +103,14 @@ const loadRealData = () => {
   try {
     const { startDate, endDate } = JournalDataService.getCurrentWeekPeriod()
     
-    // Charge les données d'activité et d'humeur
     const activityData = JournalDataService.getActivityDataForPeriod(startDate, endDate)
     const moodData = JournalDataService.getMoodDataForPeriod(startDate, endDate)
     
-    // Obtient les données de corrélation pour le graphique
     const correlationChartData = JournalDataService.getCorrelationChartData(startDate, endDate)
     correlationData.value = correlationChartData
     
-    // Calcule les statistiques de corrélation
     stats.value = JournalDataService.calculateCorrelationStats(activityData, moodData)
     
-    // Calcule le nombre de jours actifs
     const joursActifsCount = activityData.filter(day => day.totalDuration > 0 && !day.noActivity).length
     activeData.value.joursActifs = `${joursActifsCount}/7`
     
@@ -127,7 +123,6 @@ const loadRealData = () => {
     })
   } catch (error) {
     console.error('Erreur lors du chargement des données de corrélation:', error)
-    // Garde les valeurs par défaut en cas d'erreur
   }
 }
 
@@ -144,30 +139,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.chart-container { 
-  padding: 1.5rem; 
-}
-.header { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  margin-bottom: 1rem; 
-}
+
+.chart-container { padding: 1.5rem; }
+
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+
 .chart-wrapper {
-  width: 100%;              
+  width: 100%;
   max-width: 1500px;
   height: 500px;
   margin: 0 auto;
 }
+
 .info-cards {
+  background: var(--background-soft);
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
-}
-.info-card {
-  background: var(--background-soft);
+  overflow-x: auto;
   border: 1px solid var(--border-light);
   padding: 1rem 1.5rem;
   border-radius: 1rem;
@@ -178,6 +169,7 @@ onMounted(() => {
   text-align: center;
   transition: transform 0.2s;
 }
+
 .info-card:hover {
   transform: scale(1.02);
 }
@@ -190,4 +182,5 @@ onMounted(() => {
   font-weight: 600;
   color: var(--text-primary);
 }
+
 </style>
